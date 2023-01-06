@@ -60,8 +60,8 @@ console.table(possiblePieceCoordinates([7, 3, 3]))
 
 const coordinatesToSet = (coordinates: Array<Coordinates>): Set<string> => new Set(coordinates.map(c => JSON.stringify(c)))
 
-console.log('possiblePieceCoordinates([7, 3, 3]).map(coordinatesToSet):')
-console.log(possiblePieceCoordinates([7, 3, 3]).map(coordinatesToSet))
+//console.log('possiblePieceCoordinates([7, 3, 3]).map(coordinatesToSet):')
+//console.log(possiblePieceCoordinates([7, 3, 3]).map(coordinatesToSet))
 
 const emptyIntersection = (a: Set<string>, b: Set<string>): boolean => {
   for (const candidate of a.values()) {
@@ -107,23 +107,29 @@ const solve_1 = () => { // Slow; we could extract factor 2, but it's miserable.
   }
 }
 
-const implies = (a: string, b: string): string => `(!${a} | ${b})`;
+type Clause = Array<Number>
 
-const exactlyOne = (...as: Array<string>): string => {
+const implies = (a: number, b: number): Clause => [a, -b];
+
+const exactlyOne = (...as: Array<number>): Array<Clause> => {
   // No matrix hack; we do it naively for simplicity
-  const clauses: Array<string> = []
+  const clauses: Array<Clause> = []
 
   for (const a of as) {
     for (const b of as.filter(b => b !== a)) {
-      clauses.push(implies(a, `!${b}`))
+      clauses.push(implies(a, b))
     }
   }
 
-  return clauses.join(' & ')
+  return clauses;
 }
 
-const stuff = (size: Coordinates) => {
+type Encoding = { cnf: Array<Clause>, varCount: number, getString: (literal: number) => string }
+
+const satEncodeSize = (size: Coordinates): Encoding => {
   const centers = possibleCenterCoordinates(size)
+  const centersToNumber: Record<string, number> = Object.fromEntries(centers.map((center, index) => [center, index + 1]))
+  const numbersToCenter: Record<number, string> = Object.fromEntries(Object.entries(centersToNumber).map(([center, index]) => [index, center]))
 
   const namesByCenter: Record<string, Array<string>> = Object.fromEntries(
     centers.map(center => [
@@ -142,8 +148,17 @@ const stuff = (size: Coordinates) => {
   })
 
   // Each field needs to belong to exactly one center:
-  return Object.values(centersByField).map(centers => exactlyOne(...centers));
+  let cnf: Array<Clause> = []
+  Object.values(centersByField).forEach(
+    (centers) => cnf.push(
+      ...exactlyOne(
+        ...centers.map(center => centersToNumber[center])
+      )
+    )
+  );
+
+  return { cnf, varCount: centers.length, getString: (literal) => { return numbersToCenter[Math.abs(literal)] } }
 }
 
-console.log('stuff([7, 3, 3]):')
-console.log(stuff([7, 3, 3]))
+console.log('satEncodeSize([7, 3, 3]):')
+console.log(satEncodeSize([7, 3, 3]))
