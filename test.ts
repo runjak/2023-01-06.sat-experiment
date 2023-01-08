@@ -1,3 +1,5 @@
+import { writeFileSync } from "fs";
+
 const isVolumeCandidate = (n: number): boolean => n % 7 === 0;
 const isSliceCandidate = (n: number): boolean => n >= 5;
 const isSizeCandidate = (n: number): boolean => n >= 3;
@@ -44,8 +46,8 @@ const generateDimensions = (): Array<Coordinates> => {
 const requiredPieces = ([x, y, z]: Coordinates): number =>
   Math.floor((x * y * z) / 7);
 
-console.log("Candidates are:");
-console.table(generateDimensions().map((d) => [...d, requiredPieces(d)]));
+//console.log("Candidates are:");
+//console.table(generateDimensions().map((d) => [...d, requiredPieces(d)]));
 
 const possibleCenterCoordinates = ([
   xSize,
@@ -174,23 +176,28 @@ const exactlyOne = (...as: Array<number>): Array<Clause> => {
 };
 
 type Encoding = {
-  cnf: Array<Clause>;
-  varCount: number;
+  cnf: string;
   getString: (literal: number) => string;
 };
 
 const satEncodeSize = (size: Coordinates): Encoding => {
   const centers = possibleCenterCoordinates(size);
-  const centersToNumber: Record<string, number> = Object.fromEntries(
-    centers.map((center, index) => [center, index + 1])
+  const centersByStrings: Record<string, Coordinates> = Object.fromEntries(
+    centers.map((center) => [JSON.stringify(center), center])
   );
-  const numbersToCenter: Record<number, string> = Object.fromEntries(
-    Object.entries(centersToNumber).map(([center, index]) => [index, center])
+  const centerStringsToNumber: Record<string, number> = Object.fromEntries(
+    Object.keys(centersByStrings).map((center, index) => [center, index + 1])
+  );
+  const numbersToCenterString: Record<number, string> = Object.fromEntries(
+    Object.entries(centerStringsToNumber).map(([center, index]) => [
+      index,
+      center,
+    ])
   );
 
   const namesByCenter: Record<string, Array<string>> = Object.fromEntries(
-    centers.map((center) => [
-      JSON.stringify(center),
+    Object.entries(centersByStrings).map(([centerString, center]) => [
+      centerString,
       coordinatesForCenter(center, size).map((c) => JSON.stringify(c)),
     ])
   );
@@ -207,19 +214,41 @@ const satEncodeSize = (size: Coordinates): Encoding => {
   });
 
   // Each field needs to belong to exactly one center:
-  let cnf: Array<Clause> = [];
-  Object.values(centersByField).forEach((centers) =>
-    cnf.push(...exactlyOne(...centers.map((center) => centersToNumber[center])))
-  );
+  let clauses: Array<Clause> = [];
+  Object.values(centersByField).forEach((centers) => {
+    clauses.push(
+      ...exactlyOne(...centers.map((center) => centerStringsToNumber[center]))
+    );
+  });
+
+  // At least one center must be set:
+  // clauses.push(Object.values(centerStringsToNumber));
+
+  // Choosing a fixed center as fact to simplify the problem
+  // and have a starting point for the 'cristallization'.
+  clauses.push([Object.values(centerStringsToNumber)[0]]);
+
+  const cnf = [
+    `p cnf ${centers.length} ${clauses.length - 3}`,
+    ...clauses.map((clause) => clause.map((n) => String(n)).join(" ")),
+    "0",
+  ].join("\n");
 
   return {
     cnf,
-    varCount: centers.length,
     getString: (literal) => {
-      return numbersToCenter[Math.abs(literal)];
+      return numbersToCenterString[Math.abs(literal)];
     },
   };
 };
 
 console.log("satEncodeSize([7, 3, 3]):");
-console.log(satEncodeSize([7, 3, 3]));
+//console.log(satEncodeSize([7, 3, 3]));
+
+const writeProblem = (size: Coordinates) => {
+  const encoding = satEncodeSize(size);
+  const fileName = `./${size.map((c) => String(c)).join("-")}.cnf`;
+  writeFileSync(fileName, encoding.cnf);
+};
+
+writeProblem([7, 3, 3]);
