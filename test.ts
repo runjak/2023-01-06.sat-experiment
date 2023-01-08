@@ -1,4 +1,5 @@
-import { writeFileSync } from "fs";
+import { readFileSync, writeFileSync } from "fs";
+import { takeWhile } from "lodash";
 
 const isVolumeCandidate = (n: number): boolean => n % 7 === 0;
 const isSliceCandidate = (n: number): boolean => n >= 5;
@@ -254,5 +255,73 @@ const writeProblems = () => {
     writeProblem(size);
   }
 };
-
 // writeProblems();
+
+const parseSolutionsFromOutput = (output: string): Array<Array<number>> => {
+  let solutions: Array<Array<number>> = [];
+
+  let lines = output.split("\n").map((line) => line.trim());
+  while (lines.length > 0) {
+    const currentLine = lines.shift();
+
+    if (currentLine === "s UNSATISFIABLE") {
+      break;
+    }
+
+    if (currentLine === "s SATISFIABLE") {
+      const varLines = takeWhile(lines, (line) => line.startsWith("v "));
+      const solution = varLines.flatMap(
+        (line): Array<number> =>
+          line
+            .split(" ")
+            .filter((item) => item !== "v" && item !== "0")
+            .map((item) => Number(item))
+      );
+      solutions.push(solution);
+    }
+  }
+
+  return solutions;
+};
+
+const readSolutionsFromOutputFiles = () => {
+  const outputFiles = [
+    "./outputs/7-3-3.out",
+    "./outputs/7-4-3.out",
+    "./outputs/7-4-4.out",
+    "./outputs/7-5-3.out",
+    "./outputs/7-5-4.out",
+    "./outputs/7-5-5.out",
+    "./outputs/7-6-3.out",
+    "./outputs/7-6-4.out",
+    "./outputs/7-6-5.out",
+    "./outputs/7-6-6.out",
+    "./outputs/7-7-3.out",
+    "./outputs/7-7-4.out",
+    "./outputs/7-7-5.out",
+    "./outputs/7-7-6.out",
+    "./outputs/7-7-7.out",
+    "./outputs/7-7-7.complete.out",
+  ];
+
+  for (const outputFile of outputFiles) {
+    const output = String(readFileSync(outputFile));
+
+    console.log(`parsed output for ${outputFile}:`);
+    const solutions = parseSolutionsFromOutput(output);
+    console.log(`Number of solutions: ${solutions.length}`);
+    if (solutions.length > 0) {
+      console.log("The first solution is:");
+      const firstSolution = solutions.slice().shift();
+      console.log(JSON.stringify(firstSolution));
+      const positiveVariables = firstSolution?.filter((x) => x > 0);
+      console.log(
+        `Positive variables (${positiveVariables?.length ?? 0}) are:`
+      );
+      console.log(JSON.stringify(positiveVariables));
+    } else {
+      console.log("no solution was found.");
+    }
+  }
+};
+readSolutionsFromOutputFiles();
