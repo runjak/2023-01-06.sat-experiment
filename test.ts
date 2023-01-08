@@ -160,7 +160,7 @@ const solve_1 = () => {
 
 type Clause = Array<Number>;
 
-const implies = (a: number, b: number): Clause => [a, -b];
+const implies = (a: number, b: number): Clause => [-a, b];
 
 const exactlyOne = (...as: Array<number>): Array<Clause> => {
   // No matrix hack; we do it naively for simplicity
@@ -168,7 +168,7 @@ const exactlyOne = (...as: Array<number>): Array<Clause> => {
 
   for (const a of as) {
     for (const b of as.filter((b) => b !== a)) {
-      clauses.push(implies(a, b));
+      clauses.push(implies(a, -b));
     }
   }
 
