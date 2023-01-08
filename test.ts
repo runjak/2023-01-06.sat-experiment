@@ -229,9 +229,8 @@ const satEncodeSize = (size: Coordinates): Encoding => {
   clauses.push([Object.values(centerStringsToNumber)[0]]);
 
   const cnf = [
-    `p cnf ${centers.length} ${clauses.length - 3}`,
-    ...clauses.map((clause) => clause.map((n) => String(n)).join(" ")),
-    "0",
+    `p cnf ${centers.length} ${clauses.length}`,
+    ...clauses.map((clause) => clause.map((n) => String(n)).join(" ") + " 0"),
   ].join("\n");
 
   return {
