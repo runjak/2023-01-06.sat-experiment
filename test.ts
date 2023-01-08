@@ -1,5 +1,8 @@
-import { readFileSync, writeFileSync } from "fs";
+import { exec } from "node:child_process";
+import { readFileSync } from "fs";
+import { mkdtemp, writeFile } from "fs/promises";
 import { takeWhile } from "lodash";
+import path from "path";
 
 const isVolumeCandidate = (n: number): boolean => n % 7 === 0;
 const isSliceCandidate = (n: number): boolean => n >= 5;
@@ -245,7 +248,7 @@ const satEncodeSize = (size: Coordinates): Encoding => {
 const writeProblem = (size: Coordinates) => {
   const encoding = satEncodeSize(size);
   const fileName = `./${size.map((c) => String(c)).join("-")}.cnf`;
-  writeFileSync(fileName, encoding.cnf);
+  writeFile(fileName, encoding.cnf);
 };
 
 // writeProblem([7, 3, 3]);
@@ -257,7 +260,9 @@ const writeProblems = () => {
 };
 // writeProblems();
 
-const parseSolutionsFromOutput = (output: string): Array<Array<number>> => {
+type Solution = Array<number>;
+
+const parseSolutionsFromOutput = (output: string): Array<Solution> => {
   let solutions: Array<Array<number>> = [];
 
   let lines = output.split("\n").map((line) => line.trim());
@@ -282,6 +287,20 @@ const parseSolutionsFromOutput = (output: string): Array<Array<number>> => {
   }
 
   return solutions;
+};
+
+const reportSolutions = (solutions: Array<Solution>) => {
+  console.log(`Number of solutions: ${solutions.length}`);
+  if (solutions.length > 0) {
+    console.log("The first solution is:");
+    const firstSolution = solutions.slice().shift();
+    console.log(JSON.stringify(firstSolution));
+    const positiveVariables = firstSolution?.filter((x) => x > 0);
+    console.log(`Positive variables (${positiveVariables?.length ?? 0}) are:`);
+    console.log(JSON.stringify(positiveVariables));
+  } else {
+    console.log("no solution was found.");
+  }
 };
 
 const readSolutionsFromOutputFiles = () => {
@@ -309,19 +328,48 @@ const readSolutionsFromOutputFiles = () => {
 
     console.log(`parsed output for ${outputFile}:`);
     const solutions = parseSolutionsFromOutput(output);
-    console.log(`Number of solutions: ${solutions.length}`);
-    if (solutions.length > 0) {
-      console.log("The first solution is:");
-      const firstSolution = solutions.slice().shift();
-      console.log(JSON.stringify(firstSolution));
-      const positiveVariables = firstSolution?.filter((x) => x > 0);
-      console.log(
-        `Positive variables (${positiveVariables?.length ?? 0}) are:`
-      );
-      console.log(JSON.stringify(positiveVariables));
-    } else {
-      console.log("no solution was found.");
-    }
+    reportSolutions(solutions);
   }
 };
-readSolutionsFromOutputFiles();
+// readSolutionsFromOutputFiles();
+
+const solveCNF = async (
+  cnf: string,
+  exhaustive: boolean = false
+): Promise<Array<Solution>> => {
+  const testDir = await mkdtemp("/tmp/test-sat");
+  const inputFile = path.join(testDir, "problem.cnf");
+  console.log("writing file: " + inputFile);
+  await writeFile(inputFile, cnf);
+
+  const command = `picosat ${exhaustive ? "--all" : ""} ${inputFile}`;
+  // const command = `picosat ${inputFile}`;
+
+  const output = await new Promise<string>((resolve) => {
+    exec(command, (error, stdOut) => {
+      // Ignoring error because picoSat returns as exitCode the number of output lines.
+      resolve(stdOut);
+    });
+  });
+
+  return parseSolutionsFromOutput(output);
+};
+
+const stuff = async () => {
+  const size = [7, 7, 7] as Coordinates;
+  const encoding = satEncodeSize(size);
+
+  const solutions = await solveCNF(encoding.cnf);
+  reportSolutions(solutions);
+
+  if (solutions.length < 1) {
+    return;
+  }
+
+  const [solution] = solutions;
+  const positiveVariables = solution.filter((v) => v > 0);
+  const names = positiveVariables.map((v) => encoding.getString(v));
+
+  console.log({ names });
+};
+stuff();
