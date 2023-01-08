@@ -163,9 +163,13 @@ type Clause = Array<Number>;
 const implies = (a: number, b: number): Clause => [-a, b];
 
 const exactlyOne = (...as: Array<number>): Array<Clause> => {
-  // No matrix hack; we do it naively for simplicity
-  const clauses: Array<Clause> = [];
+  let clauses: Array<Clause> = [];
 
+  // Adding all to check at least one:
+  clauses.push(as);
+
+  // Implications to generate at most one:
+  // No matrix hack; we do it naively for simplicity
   for (const a of as) {
     for (const b of as.filter((b) => b !== a)) {
       clauses.push(implies(a, -b));
@@ -221,12 +225,12 @@ const satEncodeSize = (size: Coordinates): Encoding => {
     );
   });
 
-  // At least one center must be set:
+  // // At least one center must be set:
   // clauses.push(Object.values(centerStringsToNumber));
 
-  // Choosing a fixed center as fact to simplify the problem
-  // and have a starting point for the 'cristallization'.
-  clauses.push([Object.values(centerStringsToNumber)[0]]);
+  // // Choosing a fixed center as fact to simplify the problem
+  // // and have a starting point for the 'cristallization'.
+  // clauses.push([Object.values(centerStringsToNumber)[0]]);
 
   const cnf = [
     `p cnf ${centers.length} ${clauses.length}`,
