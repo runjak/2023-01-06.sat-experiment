@@ -225,13 +225,6 @@ const satEncodeSize = (size: Coordinates): Encoding => {
     );
   });
 
-  // // At least one center must be set:
-  // clauses.push(Object.values(centerStringsToNumber));
-
-  // // Choosing a fixed center as fact to simplify the problem
-  // // and have a starting point for the 'cristallization'.
-  // clauses.push([Object.values(centerStringsToNumber)[0]]);
-
   const cnf = [
     `p cnf ${centers.length} ${clauses.length}`,
     ...clauses.map((clause) => clause.map((n) => String(n)).join(" ") + " 0"),
@@ -245,8 +238,8 @@ const satEncodeSize = (size: Coordinates): Encoding => {
   };
 };
 
-console.log("satEncodeSize([7, 3, 3]):");
-//console.log(satEncodeSize([7, 3, 3]));
+// console.log("satEncodeSize([7, 3, 3]):");
+// console.log(satEncodeSize([7, 3, 3]));
 
 const writeProblem = (size: Coordinates) => {
   const encoding = satEncodeSize(size);
@@ -254,4 +247,12 @@ const writeProblem = (size: Coordinates) => {
   writeFileSync(fileName, encoding.cnf);
 };
 
-writeProblem([7, 3, 3]);
+// writeProblem([7, 3, 3]);
+
+const writeProblems = () => {
+  for (const size of generateDimensions()) {
+    writeProblem(size);
+  }
+};
+
+writeProblems();
