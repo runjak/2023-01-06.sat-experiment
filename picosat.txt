@@ -1,0 +1,21 @@
+Package: picosat
+Version: 965-2
+Priority: extra
+Section: universe/science
+Origin: Ubuntu
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Original-Maintainer: Debian Science Team <debian-science-maintainers@lists.alioth.debian.org>
+Bugs: https://bugs.launchpad.net/ubuntu/+filebug
+Installed-Size: 902 kB
+Depends: libc6 (>= 2.7)
+Homepage: http://fmv.jku.at/picosat/
+Download-Size: 91.9 kB
+APT-Sources: http://archive.ubuntu.com/ubuntu jammy/universe amd64 Packages
+Description: SAT solver with proof and core support
+ Despite the NP completeness of the satisfiabilty problem of Boolean formulas
+ (SAT), SAT solvers are often able to decide this problem in a reasonable time
+ frame. As all other NP complete problems are reducible to SAT, the solvers
+ have become a general purpose tool for this class of problems.
+ .
+ PicoSAT is a SAT solver that turned out to be faster on industrial instances
+ than MiniSAT 2.0 and also can generate proofs and cores in memory.
