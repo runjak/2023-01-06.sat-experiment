@@ -28,8 +28,8 @@ module zTooth() {
 }
 
 module plusCube(front = false, back = false, left = false, right = false, top = false, bottom = false) {
-  // translate([-bigCube/2, -bigCube/2, -bigCube/2])
-  
+  delta = (smallCube - smallCube*toothPadding)/2;
+
   union() {
     difference() {
       cube([bigCube, bigCube, bigCube]);
@@ -95,7 +95,7 @@ module plusCube(front = false, back = false, left = false, right = false, top = 
       }
     }
 
-    if( front){
+    if (front) {
       translate([0, -1, 6]) yTooth();
       translate([2, -1, 5]) yTooth();
       translate([4, -1, 4]) yTooth();
@@ -105,7 +105,7 @@ module plusCube(front = false, back = false, left = false, right = false, top = 
       translate([5, -1, 0]) yTooth();
     }
 
-    if( back){
+    if (back) {
       translate([6, 7, 5]) yTooth();
       translate([5, 7, 2]) yTooth();
       translate([4, 7, 6]) yTooth();
@@ -115,7 +115,7 @@ module plusCube(front = false, back = false, left = false, right = false, top = 
       translate([0, 7, 1]) yTooth();
     }
 
-    if( left){
+    if (left) {
       translate([-1, 6, 1]) xTooth();
       translate([-1, 5, 3]) xTooth();
       translate([-1, 4, 5]) xTooth();
@@ -125,7 +125,7 @@ module plusCube(front = false, back = false, left = false, right = false, top = 
       translate([-1, 0, 6]) xTooth();
     }
 
-    if( right){
+    if (right) {
       translate([7, 0, 3]) xTooth();
       translate([7, 1, 1]) xTooth();
       translate([7, 2, 6]) xTooth();
@@ -135,7 +135,7 @@ module plusCube(front = false, back = false, left = false, right = false, top = 
       translate([7, 6, 5]) xTooth();
     }
 
-    if( top){
+    if (top) {
       translate([0, 0, 7]) zTooth();
       translate([1, 5, 7]) zTooth();
       translate([2, 3, 7]) zTooth();
@@ -145,7 +145,7 @@ module plusCube(front = false, back = false, left = false, right = false, top = 
       translate([6, 2, 7]) zTooth();
     }
 
-    if( bottom){
+    if (bottom) {
       translate([0, 3, -1]) zTooth();
       translate([1, 1, -1]) zTooth();
       translate([2, 6, -1]) zTooth();
