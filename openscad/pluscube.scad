@@ -20,19 +20,11 @@ module yTooth() {
 }
 
 module xTooth() {
-  t = toothPadding * smallCube;
-  d = (smallCube - t) / 2;
-
-  translate([0, d, d])
-  cube([smallCube, t, t]);
+  translate([1, 0, 0]) rotate([0, 0, 90]) yTooth();
 }
 
 module zTooth() {
-  t = toothPadding * smallCube;
-  d = (smallCube - t) / 2;
-
-  translate([d, d, 0])
-  cube([t, t, smallCube]);
+  translate([0, 1, 0]) rotate([90, 0, 0]) yTooth();
 }
 
 module plusCube(front = false, back = false, left = false, right = false, top = false, bottom = false) {
