@@ -3,6 +3,7 @@ bigCube = 7 * smallCube;
 toothPadding = 0.9; // making teeth smaller by a factor
 holePadding = 1.1; // making holes larger by a factor
 generateTarget = 0; // 0..26
+toScale = 1;
 
 module hole() {
   h = holePadding * smallCube;
@@ -55,6 +56,7 @@ module plusCube(x, y, z) {
   bottom = (z != 0);
   top = (z != 2);
 
+  scale(toScale)
   union() {
     difference() {
       cube([bigCube, bigCube, bigCube]);
