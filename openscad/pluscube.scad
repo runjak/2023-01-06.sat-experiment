@@ -2,6 +2,7 @@ smallCube = 1;
 bigCube = 7 * smallCube;
 toothPadding = 0.9; // making teeth smaller by a factor
 holePadding = 1.1; // making holes larger by a factor
+generateTarget = 0; // 0..26
 
 module hole() {
   h = holePadding * smallCube;
@@ -46,7 +47,14 @@ module tooth(x, y, z) {
   translate([x,y,z]) translate(shifts(x,y,z))  cube([smallCube * ps[0], smallCube * ps[1], smallCube * ps[2]]);
 }
 
-module plusCube(front = false, back = false, left = false, right = false, top = false, bottom = false) {
+module plusCube(x, y, z) {
+  front = (y != 0);
+  back = (y != 2);
+  left = (x != 0);
+  right = (x != 2);
+  bottom = (z != 0);
+  top = (z != 2);
+
   union() {
     difference() {
       cube([bigCube, bigCube, bigCube]);
@@ -175,7 +183,7 @@ module plusCube(front = false, back = false, left = false, right = false, top = 
 }
 
 module demo() {
-  plusCube(front=true, back=true, left=true, right=true, top=true, bottom=true);
+  plusCube(1,1,1);
 }
 
 module main() {
@@ -184,18 +192,26 @@ module main() {
   for (z = [0:2]) {
     for (y = [0:2]) {
       for (x = [0:2]) {
-        front = (y != 0);
-        back = (y != 2);
-        left = (x != 0);
-        right = (x != 2);
-        bottom = (z != 0);
-        top = (z != 2);
+        translate([x * shift, y * shift, z * shift]) plusCube(x,y,z);
+      }
+    }
+  }
+}
 
-        translate([x * shift, y * shift, z * shift]) plusCube(front, back, left, right, top, bottom);
+module generateParts() {
+  // Dirty loop structure because apparently I can't modulo today o.O
+  for (z = [0:2]) {
+    for (y = [0:2]) {
+      for (x = [0:2]) {
+        targetCandidate = z * 9 + y * 3 + x;
+        if (targetCandidate == generateTarget) {
+          plusCube(x, y, z);
+        }
       }
     }
   }
 }
 
 // demo();
-main();
+// main();
+generateParts();
