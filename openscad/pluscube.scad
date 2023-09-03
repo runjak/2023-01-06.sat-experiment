@@ -11,25 +11,42 @@ module hole() {
   cube([h, h, h]);
 }
 
-module yTooth() {
-  t = toothPadding * smallCube;
-  d = (smallCube - t) / 2;
+function getPadding(x) = (x == 0 || x == 6) ? (toothPadding/2 + 0.5) : toothPadding;
 
-  translate([d, 0, d])
-  cube([t, smallCube, t]);
-}
+function paddings(x, y, z) =
+  let (
+    isY = (y == -1 || y == 7) // front or back
+  , isX = (x == -1 || x == 7) // left or right
+  // isZ (z == -1 || z == 7) implicit bottom or top
+  , yPadding = [getPadding(x), 1, getPadding(z)]
+  , xPadding = [1, getPadding(y), getPadding(z)]
+  , zPadding = [getPadding(x), getPadding(y), 1]
+  )
+  isY ? yPadding : (isX ? xPadding : zPadding);
 
-module xTooth() {
-  translate([1, 0, 0]) rotate([0, 0, 90]) yTooth();
-}
+function getShift(x) = let (
+    fullShift = 1 - smallCube * toothPadding  
+  , halfShift = fullShift / 2
+  ) (x == 0) ? 0 : (halfShift);
 
-module zTooth() {
-  translate([0, 1, 0]) rotate([90, 0, 0]) yTooth();
+function shifts(x,y,z) =
+  let (
+    isY = (y == -1 || y == 7) // front or back
+  , isX = (x == -1 || x == 7) // left or right
+  // isZ (z == -1 || z == 7) implicit bottom or top
+  , yShift = [getShift(x), 0, getShift(z)]
+  , xShift = [0, getShift(y), getShift(z)]
+  , zShift = [getShift(x), getShift(y), 0]
+  )
+  isY ? yShift : (isX ? xShift : zShift);
+
+module tooth(x, y, z) {
+  ps = paddings(x,y,z);
+
+  translate([x,y,z]) translate(shifts(x,y,z))  cube([smallCube * ps[0], smallCube * ps[1], smallCube * ps[2]]);
 }
 
 module plusCube(front = false, back = false, left = false, right = false, top = false, bottom = false) {
-  delta = (smallCube - smallCube*toothPadding)/2;
-
   union() {
     difference() {
       cube([bigCube, bigCube, bigCube]);
@@ -96,63 +113,63 @@ module plusCube(front = false, back = false, left = false, right = false, top = 
     }
 
     if (front) {
-      translate([0, -1, 6]) yTooth();
-      translate([2, -1, 5]) yTooth();
-      translate([4, -1, 4]) yTooth();
-      translate([6, -1, 3]) yTooth();
-      translate([1, -1, 2]) yTooth();
-      translate([3, -1, 1]) yTooth();
-      translate([5, -1, 0]) yTooth();
+      tooth(0, -1, 6);
+      tooth(2, -1, 5);
+      tooth(4, -1, 4);
+      tooth(6, -1, 3);
+      tooth(1, -1, 2);
+      tooth(3, -1, 1);
+      tooth(5, -1, 0);
     }
 
     if (back) {
-      translate([6, 7, 5]) yTooth();
-      translate([5, 7, 2]) yTooth();
-      translate([4, 7, 6]) yTooth();
-      translate([3, 7, 3]) yTooth();
-      translate([2, 7, 0]) yTooth();
-      translate([1, 7, 4]) yTooth();
-      translate([0, 7, 1]) yTooth();
+      tooth(6, 7, 5);
+      tooth(5, 7, 2);
+      tooth(4, 7, 6);
+      tooth(3, 7, 3);
+      tooth(2, 7, 0);
+      tooth(1, 7, 4);
+      tooth(0, 7, 1);
     }
 
     if (left) {
-      translate([-1, 6, 1]) xTooth();
-      translate([-1, 5, 3]) xTooth();
-      translate([-1, 4, 5]) xTooth();
-      translate([-1, 3, 0]) xTooth();
-      translate([-1, 2, 2]) xTooth();
-      translate([-1, 1, 4]) xTooth();
-      translate([-1, 0, 6]) xTooth();
+      tooth(-1, 6, 1);
+      tooth(-1, 5, 3);
+      tooth(-1, 4, 5);
+      tooth(-1, 3, 0);
+      tooth(-1, 2, 2);
+      tooth(-1, 1, 4);
+      tooth(-1, 0, 6);
     }
 
     if (right) {
-      translate([7, 0, 3]) xTooth();
-      translate([7, 1, 1]) xTooth();
-      translate([7, 2, 6]) xTooth();
-      translate([7, 3, 4]) xTooth();
-      translate([7, 4, 2]) xTooth();
-      translate([7, 5, 0]) xTooth();
-      translate([7, 6, 5]) xTooth();
+      tooth(7, 0, 3);
+      tooth(7, 1, 1);
+      tooth(7, 2, 6);
+      tooth(7, 3, 4);
+      tooth(7, 4, 2);
+      tooth(7, 5, 0);
+      tooth(7, 6, 5);
     }
 
     if (top) {
-      translate([0, 0, 7]) zTooth();
-      translate([1, 5, 7]) zTooth();
-      translate([2, 3, 7]) zTooth();
-      translate([3, 1, 7]) zTooth();
-      translate([4, 6, 7]) zTooth();
-      translate([5, 4, 7]) zTooth();
-      translate([6, 2, 7]) zTooth();
+      tooth(0, 0, 7);
+      tooth(1, 5, 7);
+      tooth(2, 3, 7);
+      tooth(3, 1, 7);
+      tooth(4, 6, 7);
+      tooth(5, 4, 7);
+      tooth(6, 2, 7);
     }
 
     if (bottom) {
-      translate([0, 3, -1]) zTooth();
-      translate([1, 1, -1]) zTooth();
-      translate([2, 6, -1]) zTooth();
-      translate([3, 4, -1]) zTooth();
-      translate([4, 2, -1]) zTooth();
-      translate([5, 0, -1]) zTooth();
-      translate([6, 5, -1]) zTooth();
+      tooth(0, 3, -1);
+      tooth(1, 1, -1);
+      tooth(2, 6, -1);
+      tooth(3, 4, -1);
+      tooth(4, 2, -1);
+      tooth(5, 0, -1);
+      tooth(6, 5, -1);
     }
   }
 }
@@ -180,5 +197,5 @@ module main() {
   }
 }
 
-demo();
-// Bmain();
+// demo();
+main();
